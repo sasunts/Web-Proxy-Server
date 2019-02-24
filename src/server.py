@@ -148,9 +148,10 @@ def proxy_server(webserver, port, conn, request):
                 conn.close()
                 return
 
-        # TODO: if request data in cache send data to browser
+        # if request data in cache send data to browser
         try:
             if cache[request]:
+                #using zlib to decompress cached data
                 conn.send(zlib.decompress(cache[request]))
                 conn.close()
                 print("Request was in cache and sent directly to browser")
@@ -166,8 +167,8 @@ def proxy_server(webserver, port, conn, request):
 
         while True:
             #recieves the data which is then used to send to the browser.
-
-            # TODO: store reply into cache since it is not already
+            #store reply into cache since it is not already and compress using
+            #zlib
             reply = s.recv(BUFFER)
             if(len(reply)>0):
                 cache[request] = zlib.compress(reply,5)
