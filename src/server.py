@@ -7,6 +7,7 @@ MAX_CONNECTION = 50             #Number of backlog request
 BUFFER = 5120                   #buffer size of data to be recieved
 port_listen = ""                #global variable of port to listen on
 blocked_urls = []               #list of blocked urls
+cache ={}                       #Key value pair (hashmap) for cache for O(1) access
 blocked_file = "block.txt"      #Name of blocked lists file used to fetch later
 
 def Main():
@@ -64,8 +65,8 @@ def Main():
                         break
                     else:
                         print("Inalid argument try again")
-        else:
-            print("Wrong input try again\n")
+            else:
+                print("Wrong input try again\n")
 
     except KeyboardInterrupt:
         print("\nExiting")
@@ -146,6 +147,17 @@ def proxy_server(webserver, port, conn, request):
                 conn.close()
                 return
 
+        # TODO: if request data in cache send data to browser
+        try:
+            if cache[request]:
+                conn.send(cache[request])
+                conn.close()
+                print("Request was in cache and sent directly to browser")
+                return
+        except KeyError:
+            pass
+
+
         #sends request to a server
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((webserver, port))
@@ -153,8 +165,11 @@ def proxy_server(webserver, port, conn, request):
 
         while True:
             #recieves the data which is then used to send to the browser.
+
+            # TODO: store reply into cache since it is not already
             reply = s.recv(BUFFER)
             if(len(reply)>0):
+                cache[request] = reply
                 conn.send(reply)
                 print("Request handled : " + webserver)
             else:
@@ -165,6 +180,12 @@ def proxy_server(webserver, port, conn, request):
     except socket.error:
         s.close()
         conn.close()
+        sys.exit()
+
+    except KeyboardInterrupt:
+        s.close()
+        conn.close()
+        print("Exiting")
         sys.exit()
 
 #Function to block and unblock urls
