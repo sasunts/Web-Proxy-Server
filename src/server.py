@@ -7,24 +7,44 @@ MAX_CONNECTION = 50
 BUFFER = 5120
 HOST = '127.0.0.1'
 port_listen = ""
-
+blocked_urls = []
+blocked_file = "block.txt"
 
 def Main():
+    global blocked_urls
     global port_listen
-    while True:
-        userIn = raw_input("|C - Connection | S - Settings | E - Exit|\n")
 
-        if(userIn is "c"):
-            while True:
-                try:
-                    port_listen = int(raw_input("Enter proxy port: "))
-                    run()
-                except socket.error:
-                    print("Try again in port in use")
-                    pass
-        elif(userIn is "e"):
-            print("Exiting")
-            sys.exit()
+    block = open(blocked_file, "r")
+    for i in block:
+        blocked_urls.insert(0,i)
+    block.close()
+    try:
+        while True:
+            userIn = raw_input("|C - Connection | S - Settings | E - Exit|\n")
+            userIn = userIn.lower()
+            if(userIn == "c"):
+                while True:
+                    try:
+                        port_listen = int(raw_input("Enter proxy port: "))
+                        run()
+                    except socket.error:
+                        print("Try again, port in use")
+                        pass
+                    except ValueError:
+                        print("Inalid argument try again")
+                        pass
+
+
+            elif(userIn is "e"):
+                print("Exiting")
+                sys.exit()
+
+            else:
+                print("Wrong input try again\n")
+
+    except KeyboardInterrupt:
+        print("\nExiting")
+        sys.exit()
 
 
 def run():
@@ -37,8 +57,7 @@ def run():
         print("Server Started on Port: " + str(port_listen))
         print("Running proxy")
     except Exception:
-        print("Unable to start server")
-        sys.exit()
+        pass
 
     while True:
         try:
@@ -90,6 +109,12 @@ def handler(conn, request):
 
 def proxy_server(webserver, port, conn, request):
     try:
+        for i in blocked_urls:
+            if(i.lower().strip() == webserver.lower().strip()):
+                print("You are trying to enter a forbidden URL")
+                conn.close()
+                return
+
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((webserver, port))
         s.send(request)
@@ -99,7 +124,7 @@ def proxy_server(webserver, port, conn, request):
 
             if(len(reply)>0):
                 conn.send(reply)
-                print("Request Handled : " + webserver)
+                print("Request handled : " + webserver)
             else:
                 break
 
