@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 import os
+import zlib
 
 MAX_CONNECTION = 50             #Number of backlog request
 BUFFER = 5120                   #buffer size of data to be recieved
@@ -150,7 +151,7 @@ def proxy_server(webserver, port, conn, request):
         # TODO: if request data in cache send data to browser
         try:
             if cache[request]:
-                conn.send(cache[request])
+                conn.send(zlib.decompress(cache[request]))
                 conn.close()
                 print("Request was in cache and sent directly to browser")
                 return
@@ -169,7 +170,7 @@ def proxy_server(webserver, port, conn, request):
             # TODO: store reply into cache since it is not already
             reply = s.recv(BUFFER)
             if(len(reply)>0):
-                cache[request] = reply
+                cache[request] = zlib.compress(reply,5)
                 conn.send(reply)
                 print("Request handled : " + webserver)
             else:
