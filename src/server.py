@@ -16,12 +16,11 @@ def Main():
 
     block = open(blocked_file, "r")
     for i in block:
-        blocked_urls.insert(0,i)
+        blocked_urls.append(i)
     block.close()
     try:
         while True:
-            userIn = raw_input("|C - Connection | S - Settings | E - Exit|\n")
-            userIn = userIn.lower()
+            userIn = raw_input("|C - Connection | S - Settings | E - Exit|\n").lower()
             if(userIn == "c"):
                 while True:
                     try:
@@ -34,13 +33,33 @@ def Main():
                         print("Inalid argument try again")
                         pass
 
-
-            elif(userIn is "e"):
+            elif(userIn == "e"):
                 print("Exiting")
                 sys.exit()
 
-            else:
-                print("Wrong input try again\n")
+            elif(userIn == "s"):
+                print("URLS BLOCKED:")
+                for i in blocked_urls:
+                    print(i.strip())
+
+                while True:
+                    options = raw_input("|B - Block URL | U - Un-block URL | R - Return to menu| \n").lower()
+                    if(options == 'b'):
+                        url_to_block = raw_input("Enter Url to block i.e www.example.com\n")
+                        block = True
+                        blockUrl(url_to_block, block)
+                        break
+                    elif(options == 'u'):
+                        url_to_unblock = raw_input("Enter Url to un-block i.e www.example.com\n")
+                        block = False
+                        blockUrl(url_to_unblock, block)
+                        break
+                    elif(options == 'r'):
+                        break
+                    else:
+                        print("Inalid argument try again")
+        else:
+            print("Wrong input try again\n")
 
     except KeyboardInterrupt:
         print("\nExiting")
@@ -135,6 +154,29 @@ def proxy_server(webserver, port, conn, request):
         conn.close()
         sys.exit()
 
+def blockUrl(url, block):
+    if(block):
+        blocked_urls.append(url)
+        f = open(blocked_file, "a+")
+        f.write(url +"\n")
+        f.close()
+        return
+
+    elif not block:
+        try:
+            blocked_urls.remove(url+"\n")
+            f = open(blocked_file,"r")
+            lines = f.readlines()
+            f.close()
+            f = open(blocked_file,"w")
+            for line in lines:
+                if line!=url+"\n":
+                    f.write(line)
+            f.close()
+        except ValueError:
+            print("Url not in list")
+            return
+        return
 
 
 
