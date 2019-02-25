@@ -5,7 +5,7 @@ import os
 import zlib
 
 MAX_CONNECTION = 50             #Number of backlog request
-BUFFER = 16384                   #buffer size of data to be recieved
+BUFFER = 16384                  #buffer size of data to be recieved
 port_listen = ""                #global variable of port to listen on
 blocked_urls = []               #list of blocked urls
 cache ={}                       #Key value pair (hashmap) for cache for O(1) access
@@ -24,8 +24,8 @@ def Main():
     try:
         while True:
             #Menu system used to navigate the management console
-            userIn = raw_input("|C - Connection | S - Settings | E - Exit|\n").lower()
-            if(userIn == "c"):
+            user_In = raw_input("|C - Connection | S - Settings | E - Exit|\n").lower()
+            if(user_In == "c"):
                 while True:
                     try:
                         port_listen = int(raw_input("Enter proxy port: "))
@@ -37,11 +37,11 @@ def Main():
                         print("Inalid argument try again")
                         pass
 
-            elif(userIn == "e"):
+            elif(user_In == "e"):
                 print("Exiting")
                 sys.exit()
 
-            elif(userIn == "s"):
+            elif(user_In == "s"):
                 print("URLS BLOCKED:")
                 for i in blocked_urls:
                     print(i.strip())
@@ -54,13 +54,13 @@ def Main():
                         url_to_block = raw_input("Enter Url to block i.e www.example.com\n")
                         block = True
                         #function is called to do the blocking
-                        blockUrl(url_to_block, block)
+                        block_url(url_to_block, block)
                         break
                     elif(options == 'u'):
                         url_to_unblock = raw_input("Enter Url to un-block i.e www.example.com\n")
                         block = False
                         #function called to do the unblocking
-                        blockUrl(url_to_unblock, block)
+                        block_url(url_to_unblock, block)
                         break
                     elif(options == 'r'):
                         break
@@ -195,7 +195,7 @@ def proxy_server(webserver, port, conn, request):
         sys.exit()
 
 #Function to block and unblock urls
-def blockUrl(url, block):
+def block_url(url, block):
     #Here we append the url to the block.txt file and the blocked_urls list
     if(block):
         blocked_urls.append(url)
