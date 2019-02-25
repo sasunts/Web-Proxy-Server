@@ -5,7 +5,7 @@ import os
 import zlib
 
 MAX_CONNECTION = 50             #Number of backlog request
-BUFFER = 2048                   #buffer size of data to be recieved
+BUFFER = 16384                   #buffer size of data to be recieved
 port_listen = ""                #global variable of port to listen on
 blocked_urls = []               #list of blocked urls
 cache ={}                       #Key value pair (hashmap) for cache for O(1) access
