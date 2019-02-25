@@ -5,7 +5,7 @@ import os
 import zlib
 
 MAX_CONNECTION = 50             #Number of backlog request
-BUFFER = 5120                   #buffer size of data to be recieved
+BUFFER = 2048                   #buffer size of data to be recieved
 port_listen = ""                #global variable of port to listen on
 blocked_urls = []               #list of blocked urls
 cache ={}                       #Key value pair (hashmap) for cache for O(1) access
@@ -69,9 +69,8 @@ def Main():
             else:
                 print("Wrong input try again\n")
 
-    except KeyboardInterrupt:
-        print("\nExiting")
-        sys.exit()
+    except Exception:
+        pass
 
 #This function creates our server and manages the threads involved in our proxy
 #server
@@ -150,12 +149,17 @@ def proxy_server(webserver, port, conn, request):
 
         # if request data in cache send data to browser
         try:
-            if cache[request]:
-                #using zlib to decompress cached data
-                conn.send(zlib.decompress(cache[request]))
-                conn.close()
-                print("Request was in cache and sent directly to browser")
-                return
+            while True:
+                if cache[request]:
+                    reply = zlib.decompress(cache[request])
+                    #using zlib to decompress cached data
+                    if(len(reply)>0):
+                        conn.send(reply)
+                        print("Request was in cache and sent directly to browser")
+                    else:
+                        break
+            conn.close()
+            return
         except KeyError:
             pass
 
@@ -164,7 +168,6 @@ def proxy_server(webserver, port, conn, request):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((webserver, port))
         s.send(request)
-
         while True:
             #recieves the data which is then used to send to the browser.
             #store reply into cache since it is not already and compress using
@@ -177,8 +180,8 @@ def proxy_server(webserver, port, conn, request):
             else:
                 break
 
-            s.close()
-            conn.close()
+        s.close()
+        conn.close()
     except socket.error:
         s.close()
         conn.close()
