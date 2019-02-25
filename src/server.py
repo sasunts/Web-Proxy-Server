@@ -84,6 +84,7 @@ def run():
         server.listen(MAX_CONNECTION)
         print("Server Started on Port: " + str(port_listen))
         print("Running proxy")
+        print("Press CTRL-C to exit at any time")
     except Exception:
         pass
 
