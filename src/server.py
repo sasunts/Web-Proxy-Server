@@ -10,6 +10,7 @@ port_listen = ""                #global variable of port to listen on
 blocked_urls = []               #list of blocked urls
 cache ={}                       #Key value pair (hashmap) for cache for O(1) access
 blocked_file = "block.txt"      #Name of blocked lists file used to fetch later
+tmp_cache =[]
 
 def Main():
     #declared global variables
@@ -132,14 +133,14 @@ def handler(conn, request):
             port = int((temp[(port_pos+1):])[:webserver_pos-port_pos-1])
             webserver = temp[:port_pos]
         #calling proxy_server function to check if request is banned or in cache
-        proxy_server(webserver, port, conn,request)
+        proxy_server(webserver, port, conn,request, first_line)
     except Exception, e:
         pass
 
 
 #Function which checks if ur is banned otherwise sends the request and relays the
 #data to the web browser.
-def proxy_server(webserver, port, conn, request):
+def proxy_server(webserver, port, conn, request, first_line):
     try:
         #Checking to see if the url is banned
         for i in blocked_urls:
@@ -152,18 +153,16 @@ def proxy_server(webserver, port, conn, request):
         try:
             while True:
                 if cache[request]:
-                    reply = zlib.decompress(cache[request])
-                    #using zlib to decompress cached data
-                    if(len(reply)>0):
-                        conn.send(reply)
+                    reply = cache[request]
+                #using zlib to decompress cached data
+                    for data in reply:
+                        conn.send(data)
                         print("Request was in cache and sent directly to browser")
-                    else:
-                        break
+
             conn.close()
             return
         except KeyError:
             pass
-
 
         #sends request to a server
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -175,14 +174,16 @@ def proxy_server(webserver, port, conn, request):
             #zlib
             reply = s.recv(BUFFER)
             if(len(reply)>0):
-                cache[request] = zlib.compress(reply,5)
+                tmp_cache.append(reply)
                 conn.send(reply)
                 print("Request handled : " + webserver)
+                cache[request] = tmp_cache
             else:
                 break
 
         s.close()
         conn.close()
+
     except socket.error:
         s.close()
         conn.close()
